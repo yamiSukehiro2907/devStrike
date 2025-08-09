@@ -3,6 +3,7 @@ package com.example.backend.dtos.User;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class UserDto {
@@ -15,12 +16,9 @@ public class UserDto {
 
     private String email;
 
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
-    private LocalDate updatedAt;
-
-
-    private Boolean isActive;
+    private LocalDateTime updatedAt;
 
     private String password;
 }

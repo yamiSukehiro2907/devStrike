@@ -29,11 +29,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String phone;
-
-    @Column(name = "is_active")
-    private Boolean isActive;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
