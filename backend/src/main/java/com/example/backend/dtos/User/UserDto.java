@@ -2,7 +2,6 @@ package com.example.backend.dtos.User;
 
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data

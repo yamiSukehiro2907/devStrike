@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Setter
@@ -35,13 +34,18 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+
     @PrePersist
-    private void onCreate(){
+    private void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
+
     @PreUpdate
-    private void onUpdate(){
+    private void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 }

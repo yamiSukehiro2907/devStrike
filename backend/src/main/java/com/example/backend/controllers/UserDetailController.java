@@ -3,6 +3,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.Authentication.LoginRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
+import com.example.backend.dtos.Response.AuthenticationResponse;
 import com.example.backend.dtos.User.UserDto;
 import com.example.backend.entities.User;
 import com.example.backend.services.Authentication.AuthService;
@@ -26,7 +27,6 @@ public class UserDetailController {
     @PostMapping("/signup")
     public ResponseEntity<?> signUpUser(@RequestBody SignUpRequest signUpRequest) {
         UserDto createdUserDto = authService.createUser(signUpRequest);
-
         if (createdUserDto == null) {
             return new ResponseEntity<>("Failed to create user!", HttpStatus.BAD_REQUEST);
         }
@@ -41,7 +41,7 @@ public class UserDetailController {
         if (identifier == null || hashedPassword == null) {
             return new ResponseEntity<>("Invalid credentials", HttpStatus.BAD_REQUEST);
         }
-        User user = authService.loginUser(identifier, hashedPassword);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        AuthenticationResponse authenticationResponse = authService.loginUser(identifier, hashedPassword);
+        return new ResponseEntity<>(authenticationResponse, HttpStatus.OK);
     }
 }
