@@ -1,18 +1,17 @@
 package com.example.backend.controllers;
 
 
+import com.example.backend.dtos.Authentication.LogOutRequest;
 import com.example.backend.dtos.Authentication.LoginRequest;
+import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
+import com.example.backend.dtos.Response.RefreshResponse;
 import com.example.backend.dtos.User.UserDto;
-import com.example.backend.entities.User;
 import com.example.backend.services.Authentication.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -35,7 +34,6 @@ public class UserDetailController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        System.out.println("Api Hit");
         String identifier = loginRequest.getUniqueIdentifier();
         String hashedPassword = loginRequest.getPassword();
         if (identifier == null || hashedPassword == null) {
@@ -43,5 +41,21 @@ public class UserDetailController {
         }
         AuthenticationResponse authenticationResponse = authService.loginUser(identifier, hashedPassword);
         return new ResponseEntity<>(authenticationResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader, @RequestBody LogOutRequest logOutRequest) {
+        if (authHeader == null || logOutRequest == null) {
+            return new ResponseEntity<>("All fields are required", HttpStatus.BAD_REQUEST);
+        }
+        return authService.logOutUser(authHeader, logOutRequest.getRefreshToken());
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshRequest refreshRequest){
+        if(refreshRequest == null || refreshRequest.getRefreshToken() == null){
+            return new ResponseEntity<>("All credentials required" , HttpStatus.BAD_REQUEST);
+        }
+       return authService.refreshUser(refreshRequest);
     }
 }

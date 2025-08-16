@@ -86,4 +86,28 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public boolean validateAccessToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        final String tokenType = extractTokenType(token);
+        return (username.equals(userDetails.getUsername())) && TokenNotExpired(token) && "access".equals(tokenType);
+    }
+
+    public boolean validateRefreshToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        final String tokenType = extractTokenType(token);
+        return (username.equals(userDetails.getUsername())) && TokenNotExpired(token) && "refresh".equals(tokenType);
+    }
+
+    private boolean TokenNotExpired(String token) {
+        return !extractExpiry(token).before(new Date());
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractTokenType(String token) {
+        return extractClaim(token, claims -> claims.get("type", String.class));
+    }
 }

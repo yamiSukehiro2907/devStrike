@@ -1,13 +1,18 @@
 package com.example.backend.services.Authentication;
 
+import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
+import com.example.backend.dtos.Response.RefreshResponse;
 import com.example.backend.dtos.User.UserDto;
 import com.example.backend.entities.User;
 import com.example.backend.repositories.User.UserRepository;
 import com.example.backend.services.UserDetail.UserDetailServiceImp;
 import com.example.backend.util.JwtUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,12 +59,12 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<User> alreadyExistingUser = userRepository.findByEmail(email);
         if (alreadyExistingUser.isPresent()) {
-            throw new RuntimeException("Email already in use");
+            return null;
         }
 
         alreadyExistingUser = userRepository.findByUsername(username);
         if (alreadyExistingUser.isPresent()) {
-            throw new RuntimeException("Username already in use");
+            return null;
         }
 
         String hashedPassword = bCryptPasswordEncoder.encode(password);
@@ -103,5 +108,55 @@ public class AuthServiceImpl implements AuthService {
         if (email == null) return false;
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+    @Override
+    public ResponseEntity<?> logOutUser(String authHeader, String refreshToken) {
+        try {
+            String accessToken = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) accessToken = authHeader.substring(7);
+            if (accessToken != null) {
+                String username = jwtUtil.extractUsername(accessToken);
+                if (jwtUtil.validateRefreshToken(refreshToken, userDetailService.loadUserByUsername(username))) {
+                    Optional<User> user = userRepository.findByUsername(username);
+                    if (user.isPresent()) {
+                        user.get().setRefreshToken(null);
+                        userRepository.save(user.get());
+                        return new ResponseEntity<>("Logout Successful", HttpStatus.OK);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);
+    }
+
+    @Override
+    public ResponseEntity<?> refreshUser(RefreshRequest refreshRequest) {
+        RefreshResponse refreshResponse = new RefreshResponse();
+        try {
+            String refreshToken = refreshRequest.getRefreshToken();
+            String username = jwtUtil.extractUsername(refreshToken);
+            UserDetails userDetails = userDetailService.loadUserByUsername(username);
+            if (jwtUtil.validateRefreshToken(refreshToken, userDetails)) {
+                Optional<User> user = userRepository.findByUsername(username);
+                if (user.isPresent()) {
+                    if (user.get().getRefreshToken() == null) {
+                        return ResponseEntity.badRequest().body("Please login again!");
+                    }
+                    String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+                    String newAccessToken = jwtUtil.generateAccessToken(userDetails);
+                    refreshResponse.setRefreshToken(newRefreshToken);
+                    user.get().setRefreshToken(newRefreshToken);
+                    userRepository.save(user.get());
+                    refreshResponse.setRefreshToken(newRefreshToken);
+                    refreshResponse.setAccessToken(newAccessToken);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Token refresh failed!");
+        }
+        return new ResponseEntity<>(refreshResponse, HttpStatus.OK);
     }
 }
