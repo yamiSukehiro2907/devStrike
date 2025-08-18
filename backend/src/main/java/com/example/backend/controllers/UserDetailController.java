@@ -6,7 +6,6 @@ import com.example.backend.dtos.Authentication.LoginRequest;
 import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
-import com.example.backend.dtos.Response.RefreshResponse;
 import com.example.backend.dtos.User.UserDto;
 import com.example.backend.services.Authentication.AuthService;
 import org.springframework.http.HttpStatus;
@@ -52,10 +51,10 @@ public class UserDetailController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshRequest refreshRequest){
-        if(refreshRequest == null || refreshRequest.getRefreshToken() == null){
-            return new ResponseEntity<>("All credentials required" , HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> refresh(@RequestBody RefreshRequest refreshRequest) {
+        if (refreshRequest == null || refreshRequest.getRefreshToken() == null) {
+            return new ResponseEntity<>("All credentials required", HttpStatus.BAD_REQUEST);
         }
-       return authService.refreshUser(refreshRequest);
+        return authService.refreshUser(refreshRequest);
     }
 }

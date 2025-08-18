@@ -1,8 +1,8 @@
 package com.example.backend.services.Platform;
 
-import com.example.backend.dtos.Platform.PlatformDto;
+import org.springframework.http.ResponseEntity;
 
 public interface PlatformService {
 
-    PlatformDto findUserPlatforms();
+    ResponseEntity<?> findByUserId(Long userId);
 }

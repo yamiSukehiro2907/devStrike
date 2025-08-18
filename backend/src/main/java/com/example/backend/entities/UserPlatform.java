@@ -1,8 +1,6 @@
 package com.example.backend.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,11 +9,18 @@ import lombok.Setter;
 @Entity
 @Table(name = "platform_user")
 public class UserPlatform {
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
 
-    @Column(name = "platform_id", nullable = false)
-    private Long platformId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "platform_id", nullable = false)
+    private Platform platform;
 
     @Column(name = "path", nullable = false)
     private String path;
