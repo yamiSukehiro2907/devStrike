@@ -9,10 +9,10 @@ public class UserPlatformDto {
 
     private String platform_name;
 
-    private String path;
+    private String username;
 
-    public UserPlatformDto(String platform_name, String path) {
+    public UserPlatformDto(String platform_name, String username) {
         this.platform_name = platform_name;
-        this.path = path;
+        this.username = username;
     }
 }

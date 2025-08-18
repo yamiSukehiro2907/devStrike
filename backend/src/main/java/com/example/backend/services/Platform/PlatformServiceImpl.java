@@ -28,11 +28,11 @@ public class PlatformServiceImpl implements PlatformService {
         List<UserPlatformDto> userPlatforms = platformRepository.findByUserId(userId);
         for (UserPlatformDto temp : userPlatforms) {
             if (Objects.equals(temp.getPlatform_name(), "Github")) {
-                platformDto.setGithubPath(temp.getPath());
+                platformDto.setGithubUsername(temp.getUsername());
             } else if (Objects.equals(temp.getPlatform_name(), "Leetcode")) {
-                platformDto.setLeetcodePath(temp.getPath());
+                platformDto.setLeetcodeUsername(temp.getUsername());
             } else if (Objects.equals(temp.getPlatform_name(), "GeeksForGeeks")) {
-                platformDto.setGeeksForGeeksPath(temp.getPath());
+                platformDto.setGeeksForGeeksUsername(temp.getUsername());
             }
         }
         return new ResponseEntity<>(platformDto, HttpStatus.OK);

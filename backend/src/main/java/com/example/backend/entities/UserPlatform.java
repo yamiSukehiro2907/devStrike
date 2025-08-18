@@ -22,6 +22,6 @@ public class UserPlatform {
     @JoinColumn(name = "platform_id", nullable = false)
     private Platform platform;
 
-    @Column(name = "path", nullable = false)
-    private String path;
+    @Column(name = "username", nullable = false)
+    private String username;
 }

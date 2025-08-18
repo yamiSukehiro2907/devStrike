@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface PlatformRepository extends JpaRepository<UserPlatform, Long> {
 
-    @Query("SELECT NEW com.example.backend.dtos.Platform.UserPlatformDto(up.platform.platformName, up.path) FROM UserPlatform up WHERE up.user.id = :userId")
+    @Query("SELECT NEW com.example.backend.dtos.Platform.UserPlatformDto(up.platform.platformName, up.username) FROM UserPlatform up WHERE up.user.id = :userId")
     List<UserPlatformDto> findByUserId(@Param("userId") Long userId);
 }

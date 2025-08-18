@@ -7,9 +7,9 @@ public class PlatformDto {
 
     private Long userId;
 
-    private String githubPath;
+    private String githubUsername;
 
-    private String leetcodePath;
+    private String leetcodeUsername;
 
-    private String geeksForGeeksPath;
+    private String geeksForGeeksUsername;
 }
