@@ -1,5 +1,6 @@
 package com.example.backend.util;
 
+import com.example.backend.services.UserDetail.CustomUserDetails;
 import com.example.backend.services.UserDetail.UserDetailServiceImp;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -43,10 +44,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (username != null && "access".equals(tokenType) && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                UserDetails userDetails = userDetailServiceImp.loadUserByUsername(username);
-                if (jwtUtil.validateAccessToken(token, userDetails)) {
+                CustomUserDetails customUserDetails = userDetailServiceImp.loadUserByUsername(username);
+                if (jwtUtil.validateAccessToken(token, customUserDetails)) {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
+                            customUserDetails, null, customUserDetails.getAuthorities()
                     );
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);

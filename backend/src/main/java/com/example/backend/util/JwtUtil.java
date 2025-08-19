@@ -1,5 +1,6 @@
 package com.example.backend.util;
 
+import com.example.backend.services.UserDetail.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -35,13 +36,14 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(CustomUserDetails customUserDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(userDetails.getUsername())
+                .subject(customUserDetails.getUsername())
+                .subject(customUserDetails.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration * 1000L))
                 .and()
@@ -50,13 +52,14 @@ public class JwtUtil {
                 ;
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(CustomUserDetails customUserDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "refresh");
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(userDetails.getUsername())
+                .subject(customUserDetails.getUsername())
+                .subject(customUserDetails.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration * 1000L))
                 .and()

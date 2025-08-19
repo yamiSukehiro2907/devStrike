@@ -13,13 +13,15 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
     private final String email;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final String role;
 
-    public CustomUserDetails(Long userId, String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(Long userId, String username, String password, String email, String role , Collection<? extends GrantedAuthority> authorities) {
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.authorities = authorities;
         this.email = email;
+        this.role = role;
     }
 
     @Override

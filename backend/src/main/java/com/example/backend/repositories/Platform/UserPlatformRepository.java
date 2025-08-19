@@ -1,4 +1,4 @@
-package com.example.backend.repositories;
+package com.example.backend.repositories.Platform;
 
 import com.example.backend.dtos.Platform.UserPlatformDto;
 import com.example.backend.entities.UserPlatform;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 @Repository
-public interface PlatformRepository extends JpaRepository<UserPlatform, Long> {
+public interface UserPlatformRepository extends JpaRepository<UserPlatform, Long> {
 
     @Query("SELECT NEW com.example.backend.dtos.Platform.UserPlatformDto(up.platform.platformName, up.username) FROM UserPlatform up WHERE up.user.id = :userId")
     List<UserPlatformDto> findByUserId(@Param("userId") Long userId);

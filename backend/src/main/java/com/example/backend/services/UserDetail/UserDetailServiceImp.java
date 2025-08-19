@@ -22,17 +22,17 @@ public class UserDetailServiceImp implements UserDetailsService {
     public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) throw new UsernameNotFoundException("User not found", null);
-        return new CustomUserDetails(optionalUser.get().getId(), optionalUser.get().getUsername(), optionalUser.get().getPassword(), optionalUser.get().getEmail(), new ArrayList<>());
+        return new CustomUserDetails(optionalUser.get().getId(), optionalUser.get().getUsername(), optionalUser.get().getPassword(), optionalUser.get().getEmail(), optionalUser.get().getRole(), new ArrayList<>());
     }
 
 
     public CustomUserDetails loadUserByEmail(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) throw new UsernameNotFoundException("Email not found", null);
-        return new CustomUserDetails(optionalUser.get().getId(), optionalUser.get().getUsername(), optionalUser.get().getPassword(), optionalUser.get().getEmail(), new ArrayList<>());
+        return new CustomUserDetails(optionalUser.get().getId(), optionalUser.get().getUsername(), optionalUser.get().getPassword(), optionalUser.get().getEmail(), optionalUser.get().getRole(), new ArrayList<>());
     }
 
     public CustomUserDetails convert(User user) {
-        return new CustomUserDetails(user.getId(), user.getUsername(), user.getPassword(), user.getEmail(), new ArrayList<>());
+        return new CustomUserDetails(user.getId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getRole(), new ArrayList<>());
     }
 }

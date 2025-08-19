@@ -7,12 +7,12 @@ import com.example.backend.dtos.Response.RefreshResponse;
 import com.example.backend.dtos.User.UserDto;
 import com.example.backend.entities.User;
 import com.example.backend.repositories.User.UserRepository;
+import com.example.backend.services.UserDetail.CustomUserDetails;
 import com.example.backend.services.UserDetail.UserDetailServiceImp;
 import com.example.backend.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
         String username = signUpRequest.getUsername();
         String password = signUpRequest.getPassword();
         String email = signUpRequest.getEmail();
+        String role = signUpRequest.getRole() != null ? signUpRequest.getRole() : "user";
 
         if (name == null || username == null || password == null || email == null) {
             throw new RuntimeException("All fields are required");
@@ -74,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(hashedPassword);
         user.setEmail(email);
         user.setName(name);
+        user.setRole(role);
 
         User createdUser = userRepository.save(user);
 
@@ -84,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
         createdUserDto.setPassword(createdUser.getPassword());
         createdUserDto.setCreatedAt(createdUser.getCreatedAt());
         createdUserDto.setUpdatedAt(createdUser.getUpdatedAt());
+        createdUserDto.setRole(createdUser.getRole());
 
         return createdUserDto;
     }
@@ -138,15 +141,15 @@ public class AuthServiceImpl implements AuthService {
         try {
             String refreshToken = refreshRequest.getRefreshToken();
             String username = jwtUtil.extractUsername(refreshToken);
-            UserDetails userDetails = userDetailService.loadUserByUsername(username);
-            if (jwtUtil.validateRefreshToken(refreshToken, userDetails)) {
+            CustomUserDetails customUserDetails = userDetailService.loadUserByUsername(username);
+            if (jwtUtil.validateRefreshToken(refreshToken, customUserDetails)) {
                 Optional<User> user = userRepository.findByUsername(username);
                 if (user.isPresent()) {
                     if (user.get().getRefreshToken() == null) {
                         return ResponseEntity.badRequest().body("Please login again!");
                     }
-                    String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
-                    String newAccessToken = jwtUtil.generateAccessToken(userDetails);
+                    String newRefreshToken = jwtUtil.generateRefreshToken(customUserDetails);
+                    String newAccessToken = jwtUtil.generateAccessToken(customUserDetails);
                     refreshResponse.setRefreshToken(newRefreshToken);
                     user.get().setRefreshToken(newRefreshToken);
                     userRepository.save(user.get());
