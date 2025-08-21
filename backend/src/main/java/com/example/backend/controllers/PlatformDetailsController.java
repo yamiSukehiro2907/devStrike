@@ -1,5 +1,6 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dtos.Platform.AddPlatformRequest;
 import com.example.backend.dtos.Platform.AdminPlatformRequest;
 import com.example.backend.services.Platform.PlatformService;
 import com.example.backend.services.UserDetail.CustomUserDetails;
@@ -26,11 +27,21 @@ public class PlatformDetailsController {
         Long userId;
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
             userId = customUserDetails.getUserId();
-            System.out.println("Get all platforms for this user : " + userId);
             return platformService.findByUserId(userId);
         } else {
             return ResponseEntity.badRequest().body("Authentication Error!");
         }
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<?> add(@RequestBody AddPlatformRequest addPlatformRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId;
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+            userId = customUserDetails.getUserId();
+            return platformService.add(userId , addPlatformRequest);
+        }
+        return ResponseEntity.badRequest().body("Authentication Error!");
     }
 
     @PostMapping("/add-platform")
@@ -48,4 +59,6 @@ public class PlatformDetailsController {
         }
         return ResponseEntity.badRequest().body("Platform Addition failed");
     }
+
+
 }

@@ -15,4 +15,11 @@ public class Platform {
 
     @Column(name = "platform_name", nullable = false)
     private String platformName;
+
+    public Platform(Long id, String platformName) {
+        this.id = id;
+        this.platformName = platformName;
+    }
+
+    public Platform(){}
 }

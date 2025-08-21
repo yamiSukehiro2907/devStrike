@@ -1,17 +1,22 @@
 package com.example.backend.services.Platform;
 
+import com.example.backend.dtos.Platform.AddPlatformRequest;
 import com.example.backend.dtos.Platform.AdminPlatformResponse;
 import com.example.backend.dtos.Platform.PlatformDto;
 import com.example.backend.dtos.Platform.UserPlatformDto;
 import com.example.backend.entities.Platform;
+import com.example.backend.entities.User;
+import com.example.backend.entities.UserPlatform;
 import com.example.backend.repositories.Platform.PlatformRepository;
 import com.example.backend.repositories.Platform.UserPlatformRepository;
+import com.example.backend.repositories.User.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class PlatformServiceImpl implements PlatformService {
@@ -20,12 +25,17 @@ public class PlatformServiceImpl implements PlatformService {
 
     public PlatformRepository platformRepository;
 
-    public PlatformServiceImpl(UserPlatformRepository userPlatformRepository, PlatformRepository platformRepository) {
+    public UserRepository userRepository;
+
+    public PlatformServiceImpl(UserPlatformRepository userPlatformRepository, PlatformRepository platformRepository, UserRepository userRepository) {
         this.userPlatformRepository = userPlatformRepository;
         this.platformRepository = platformRepository;
+        this.userRepository = userRepository;
     }
 
     private final AdminPlatformResponse adminPlatformResponse = new AdminPlatformResponse();
+
+    private final UserPlatform userPlatform = new UserPlatform();
 
     @Override
     public ResponseEntity<?> findByUserId(Long userId) {
@@ -55,5 +65,20 @@ public class PlatformServiceImpl implements PlatformService {
         adminPlatformResponse.setPlatform_name(createdPlatform.getPlatformName());
         adminPlatformResponse.setPlatform_id(createdPlatform.getId());
         return new ResponseEntity<>(adminPlatformResponse, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> add(Long userId, AddPlatformRequest addPlatformRequest) {
+        Platform platform;
+        Optional<Platform> platform1 = platformRepository.findPlatformId(addPlatformRequest.getPlatform_name());
+        if (platform1.isEmpty()) {
+            return ResponseEntity.badRequest().body("Platform not found!!");
+        }
+        Optional<User> user = userRepository.findByUserId(userId);
+        platform = platform1.get();
+        userPlatform.setPlatform(platform);
+        userPlatform.setUsername(addPlatformRequest.getUsername());
+        userPlatform.setUser(user.);
+        return null;
     }
 }

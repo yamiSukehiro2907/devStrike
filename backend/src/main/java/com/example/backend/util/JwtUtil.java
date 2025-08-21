@@ -39,11 +39,11 @@ public class JwtUtil {
     public String generateAccessToken(CustomUserDetails customUserDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
+        claims.put("role" , customUserDetails.getRole());
         return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(customUserDetails.getUsername())
-                .subject(customUserDetails.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration * 1000L))
                 .and()
@@ -55,11 +55,11 @@ public class JwtUtil {
     public String generateRefreshToken(CustomUserDetails customUserDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "refresh");
+        claims.put("role" , customUserDetails.getRole());
         return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(customUserDetails.getUsername())
-                .subject(customUserDetails.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration * 1000L))
                 .and()
