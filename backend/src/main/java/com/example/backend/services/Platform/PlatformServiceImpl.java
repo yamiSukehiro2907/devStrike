@@ -93,4 +93,20 @@ public class PlatformServiceImpl implements PlatformService {
         addPlatformResponse.setPlatformUsername(createdUserPlatform.getUsername());
         return new ResponseEntity<>(addPlatformResponse, HttpStatus.CREATED);
     }
+
+    @Override
+    public ResponseEntity<?> updatePlatform(Long userId, UpdatePlatformRequest updatePlatformRequest) {
+        Optional<UserPlatform> optionalUser = userPlatformRepository.findByPlatformNameAndUserId(updatePlatformRequest.getPlatformName(), userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.badRequest().body("You are not connected to this platform!!!");
+        }
+        UserPlatform userPlatform = optionalUser.get();
+        userPlatform.setUsername(updatePlatformRequest.getNewUsername());
+        UserPlatform updatedPlatform = userPlatformRepository.save(userPlatform);
+        addPlatformResponse.setPlatformUsername(updatedPlatform.getUsername());
+        addPlatformResponse.setPlatformId(updatedPlatform.getPlatform().getId());
+        addPlatformResponse.setUserPlatformId(updatedPlatform.getId());
+        addPlatformResponse.setUsername(updatedPlatform.getUser().getUsername());
+        return new ResponseEntity<>(addPlatformResponse, HttpStatus.OK);
+    }
 }

@@ -13,6 +13,7 @@ import com.example.backend.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -114,29 +115,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> logOutUser(String authHeader) {
+    public ResponseEntity<?> logOutUser(String username) {
         try {
-            String accessToken = null;
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                accessToken = authHeader.substring(7);
+            Optional<User> user = userRepository.findByUsername(username);
+            if (user.isEmpty()) {
+                return ResponseEntity.badRequest().body("User not found! Access Token is invalid");
             }
-            if (accessToken != null) {
-                String username = jwtUtil.extractUsername(accessToken);
-                Optional<User> user = userRepository.findByUsername(username);
-                if (user.isEmpty()) {
-                    return ResponseEntity.badRequest().body("User not found! Access Token is invalid");
-                }
-                if (user.get().getRefreshToken() == null) {
-                    return ResponseEntity.badRequest().body("User is already log out!");
-                }
-                user.get().setRefreshToken(null);
-                userRepository.save(user.get());
-                return new ResponseEntity<>("LogOut Successful!", HttpStatus.OK);
+            if (user.get().getRefreshToken() == null) {
+                return ResponseEntity.badRequest().body("User is already log out!");
             }
+            user.get().setRefreshToken(null);
+            userRepository.save(user.get());
+            SecurityContextHolder.clearContext();
+            return new ResponseEntity<>("LogOut Successful!", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);
         }
-        return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);
     }
 
     @Override

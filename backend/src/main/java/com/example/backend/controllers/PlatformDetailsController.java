@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.Platform.AddPlatformRequest;
 import com.example.backend.dtos.Platform.AdminPlatformRequest;
+import com.example.backend.dtos.Platform.UpdatePlatformRequest;
 import com.example.backend.services.Platform.PlatformService;
 import com.example.backend.services.UserDetail.CustomUserDetails;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,7 @@ public class PlatformDetailsController {
         String username;
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
             username = customUserDetails.getUsername();
-            return platformService.add(username , addPlatformRequest);
+            return platformService.add(username, addPlatformRequest);
         }
         return ResponseEntity.badRequest().body("Authentication Error!");
     }
@@ -58,5 +59,18 @@ public class PlatformDetailsController {
             return platformService.addPlatforms(userId, adminPlatformRequest.getPlatform_name());
         }
         return ResponseEntity.badRequest().body("Platform Addition failed");
+    }
+
+    @PutMapping("/update-platform")
+    public ResponseEntity<?> updatePlatform(@RequestBody UpdatePlatformRequest updatePlatformRequest) {
+        if (updatePlatformRequest == null || updatePlatformRequest.getPlatformName() == null || updatePlatformRequest.getNewUsername() == null) {
+            return ResponseEntity.badRequest().body("All fields are required!");
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+            Long userId = customUserDetails.getUserId();
+            return platformService.updatePlatform(userId, updatePlatformRequest);
+        }
+        return ResponseEntity.badRequest().body("Not authenticated or invalid user details!");
     }
 }

@@ -20,4 +20,8 @@ public interface UserPlatformRepository extends JpaRepository<UserPlatform, Long
 
     @Query("SELECT NEW com.example.backend.dtos.Platform.UserPlatformPair(up.user.id, up.platform.id) FROM UserPlatform up WHERE up.user.id = :userId AND up.platform.id = :platformId")
     Optional<UserPlatformPair> findByPlatformIdAndUserId(@Param("platformId") Long platformId, @Param("userId") Long userId);
+
+    @Query("SELECT up FROM UserPlatform up WHERE up.user.id = :user_id AND up.platform.platformName = :platform_name")
+    Optional<UserPlatform> findByPlatformNameAndUserId(@Param("platform_name") String platformName, @Param("user_id") Long userId);
+
 }

@@ -8,4 +8,5 @@ import lombok.Setter;
 public class AdminPlatformRequest {
 
     private String platform_name;
+
 }

@@ -7,9 +7,15 @@ import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
 import com.example.backend.dtos.User.UserDto;
 import com.example.backend.services.Authentication.AuthService;
+import com.example.backend.services.UserDetail.CustomUserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,11 +48,14 @@ public class UserDetailController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null) {
-            return new ResponseEntity<>("All fields are required", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> logoutUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username;
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+            username = customUserDetails.getUsername();
+            return authService.logOutUser(username);
         }
-        return authService.logOutUser(authHeader);
+        return ResponseEntity.badRequest().body("Failed to logout the user!");
     }
 
     @PostMapping("/refresh")
