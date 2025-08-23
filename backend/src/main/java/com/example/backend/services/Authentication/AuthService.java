@@ -12,7 +12,7 @@ public interface AuthService {
 
     AuthenticationResponse loginUser(String identifier, String hashedPassword);
 
-    ResponseEntity<?> logOutUser(String authHeader, String refreshToken);
+    ResponseEntity<?> logOutUser(String authHeader);
 
     ResponseEntity<?> refreshUser(RefreshRequest refreshRequest);
 }

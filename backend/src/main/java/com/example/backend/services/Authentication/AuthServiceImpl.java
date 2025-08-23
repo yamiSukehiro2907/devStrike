@@ -114,20 +114,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> logOutUser(String authHeader, String refreshToken) {
+    public ResponseEntity<?> logOutUser(String authHeader) {
         try {
             String accessToken = null;
-            if (authHeader != null && authHeader.startsWith("Bearer ")) accessToken = authHeader.substring(7);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                accessToken = authHeader.substring(7);
+            }
             if (accessToken != null) {
                 String username = jwtUtil.extractUsername(accessToken);
-                if (jwtUtil.validateRefreshToken(refreshToken, userDetailService.loadUserByUsername(username))) {
-                    Optional<User> user = userRepository.findByUsername(username);
-                    if (user.isPresent()) {
-                        user.get().setRefreshToken(null);
-                        userRepository.save(user.get());
-                        return new ResponseEntity<>("Logout Successful", HttpStatus.OK);
-                    }
+                Optional<User> user = userRepository.findByUsername(username);
+                if (user.isEmpty()) {
+                    return ResponseEntity.badRequest().body("User not found! Access Token is invalid");
                 }
+                if (user.get().getRefreshToken() == null) {
+                    return ResponseEntity.badRequest().body("User is already log out!");
+                }
+                user.get().setRefreshToken(null);
+                userRepository.save(user.get());
+                return new ResponseEntity<>("LogOut Successful!", HttpStatus.OK);
             }
         } catch (Exception e) {
             return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);

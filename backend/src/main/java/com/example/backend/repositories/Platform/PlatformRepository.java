@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface PlatformRepository extends JpaRepository<Platform , Long> {
 
-    @Query("SELECT NEW com.example.backend.entities.Platform(p.id , p.platform_name) FROM platform p WHERE p.platform_name := platform_name")
+    @Query("SELECT NEW com.example.backend.entities.Platform(p.id, p.platformName) FROM Platform p WHERE p.platformName = :platform_name")
     Optional<Platform> findPlatformId(String platform_name);
-
 }

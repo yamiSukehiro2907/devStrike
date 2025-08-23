@@ -1,15 +1,13 @@
 package com.example.backend.services.Platform;
 
-import com.example.backend.dtos.Platform.AddPlatformRequest;
-import com.example.backend.dtos.Platform.AdminPlatformResponse;
-import com.example.backend.dtos.Platform.PlatformDto;
-import com.example.backend.dtos.Platform.UserPlatformDto;
+import com.example.backend.dtos.Platform.*;
 import com.example.backend.entities.Platform;
 import com.example.backend.entities.User;
 import com.example.backend.entities.UserPlatform;
 import com.example.backend.repositories.Platform.PlatformRepository;
 import com.example.backend.repositories.Platform.UserPlatformRepository;
 import com.example.backend.repositories.User.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,7 +33,8 @@ public class PlatformServiceImpl implements PlatformService {
 
     private final AdminPlatformResponse adminPlatformResponse = new AdminPlatformResponse();
 
-    private final UserPlatform userPlatform = new UserPlatform();
+    private final AddPlatformResponse addPlatformResponse = new AddPlatformResponse();
+
 
     @Override
     public ResponseEntity<?> findByUserId(Long userId) {
@@ -68,17 +67,30 @@ public class PlatformServiceImpl implements PlatformService {
     }
 
     @Override
-    public ResponseEntity<?> add(Long userId, AddPlatformRequest addPlatformRequest) {
+    @Transactional
+    public ResponseEntity<?> add(String username, AddPlatformRequest addPlatformRequest) {
         Platform platform;
         Optional<Platform> platform1 = platformRepository.findPlatformId(addPlatformRequest.getPlatform_name());
         if (platform1.isEmpty()) {
             return ResponseEntity.badRequest().body("Platform not found!!");
         }
-        Optional<User> user = userRepository.findByUserId(userId);
-        platform = platform1.get();
-        userPlatform.setPlatform(platform);
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        Optional<UserPlatformPair> userPlatformPair = userPlatformRepository.findByPlatformIdAndUserId(platform1.get().getId(), user.get().getId());
+        if (userPlatformPair.isPresent()) {
+            return ResponseEntity.badRequest().body("User already registered for this platform!");
+        }
+        UserPlatform userPlatform = new UserPlatform();
+        userPlatform.setPlatform(platform1.get());
+        userPlatform.setUser(user.get());
         userPlatform.setUsername(addPlatformRequest.getUsername());
-        userPlatform.setUser(user.);
-        return null;
+        UserPlatform createdUserPlatform = userPlatformRepository.save(userPlatform);
+        addPlatformResponse.setUsername(createdUserPlatform.getUser().getUsername());
+        addPlatformResponse.setPlatformId(createdUserPlatform.getPlatform().getId());
+        addPlatformResponse.setUserPlatformId(createdUserPlatform.getId());
+        addPlatformResponse.setPlatformUsername(createdUserPlatform.getUsername());
+        return new ResponseEntity<>(addPlatformResponse, HttpStatus.CREATED);
     }
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "platform_user")
+@Table(name = "platform_user", uniqueConstraints = { @UniqueConstraint(columnNames = {"user_id", "platform_id"})})
 public class UserPlatform {
 
     @Id

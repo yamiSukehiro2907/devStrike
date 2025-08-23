@@ -1,7 +1,6 @@
 package com.example.backend.controllers;
 
 
-import com.example.backend.dtos.Authentication.LogOutRequest;
 import com.example.backend.dtos.Authentication.LoginRequest;
 import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
@@ -43,11 +42,11 @@ public class UserDetailController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader, @RequestBody LogOutRequest logOutRequest) {
-        if (authHeader == null || logOutRequest == null) {
+    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null) {
             return new ResponseEntity<>("All fields are required", HttpStatus.BAD_REQUEST);
         }
-        return authService.logOutUser(authHeader, logOutRequest.getRefreshToken());
+        return authService.logOutUser(authHeader);
     }
 
     @PostMapping("/refresh")

@@ -9,5 +9,5 @@ public interface PlatformService {
 
     ResponseEntity<?> addPlatforms(Long userId , String platformName);
 
-    ResponseEntity<?> add(Long userId , AddPlatformRequest addPlatformRequest);
+    ResponseEntity<?> add(String username, AddPlatformRequest addPlatformRequest);
 }

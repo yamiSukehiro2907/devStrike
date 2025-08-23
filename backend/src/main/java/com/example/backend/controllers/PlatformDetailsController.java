@@ -36,10 +36,10 @@ public class PlatformDetailsController {
     @PostMapping("/add")
     public ResponseEntity<?> add(@RequestBody AddPlatformRequest addPlatformRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId;
+        String username;
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
-            userId = customUserDetails.getUserId();
-            return platformService.add(userId , addPlatformRequest);
+            username = customUserDetails.getUsername();
+            return platformService.add(username , addPlatformRequest);
         }
         return ResponseEntity.badRequest().body("Authentication Error!");
     }
@@ -59,6 +59,4 @@ public class PlatformDetailsController {
         }
         return ResponseEntity.badRequest().body("Platform Addition failed");
     }
-
-
 }
