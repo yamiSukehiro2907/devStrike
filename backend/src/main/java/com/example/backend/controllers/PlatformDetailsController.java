@@ -73,4 +73,9 @@ public class PlatformDetailsController {
         }
         return ResponseEntity.badRequest().body("Not authenticated or invalid user details!");
     }
+
+    @PostMapping
+    public ResponseEntity<?> deletePlatform(){
+        return null;
+    }
 }
