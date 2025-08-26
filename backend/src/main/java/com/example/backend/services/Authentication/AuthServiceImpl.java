@@ -1,11 +1,11 @@
 package com.example.backend.services.Authentication;
 
-import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
-import com.example.backend.dtos.Response.RefreshResponse;
 import com.example.backend.dtos.User.UserDto;
+import com.example.backend.entities.RefreshToken;
 import com.example.backend.entities.User;
+import com.example.backend.repositories.RefreshToken.RefreshTokenRepository;
 import com.example.backend.repositories.User.UserRepository;
 import com.example.backend.services.UserDetail.CustomUserDetails;
 import com.example.backend.services.UserDetail.UserDetailServiceImp;
@@ -13,12 +13,10 @@ import com.example.backend.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,10 +30,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserDetailServiceImp userDetailService;
 
-    public AuthServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailServiceImp userDetailService) {
+    private final RefreshTokenRepository refreshTokenRepository;
+
+    public AuthServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailServiceImp userDetailService, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailService = userDetailService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -45,6 +46,9 @@ public class AuthServiceImpl implements AuthService {
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
     private static final Pattern pattern = Pattern.compile(EMAIL_REGEX);
+
+    private final AuthenticationResponse authenticationResponse = new AuthenticationResponse();
+
 
     @Override
     @Transactional
@@ -98,13 +102,22 @@ public class AuthServiceImpl implements AuthService {
         if (isEmail(identifier)) user = userRepository.findByEmail(identifier);
         else user = userRepository.findByUsername(identifier);
         if (user.isEmpty()) throw new UsernameNotFoundException("User not found", null);
+
         String accessToken = jwtUtil.generateAccessToken(userDetailService.convert(user.get()));
-        String refreshToken = jwtUtil.generateRefreshToken(userDetailService.convert(user.get()));
-        Date refreshTokenExpiry = jwtUtil.getExpirationDate(refreshToken);
-        Date accessTokenExpiry = jwtUtil.getExpirationDate(accessToken);
-        user.get().setRefreshToken(refreshToken);
-        userRepository.save(user.get());
-        return new AuthenticationResponse(accessToken, refreshToken, refreshTokenExpiry, accessTokenExpiry, user.get().getUsername());
+        String refreshTokenString = jwtUtil.generateRefreshToken(userDetailService.convert(user.get()));
+
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken(refreshTokenString);
+        refreshToken.setUserEmail(user.get().getEmail());
+
+        refreshToken.setExpiration(jwtUtil.getExpirationDate(refreshTokenString));
+        refreshTokenRepository.save(refreshToken);
+
+        authenticationResponse.setAccessToken(accessToken);
+        authenticationResponse.setRefreshToken(refreshToken.getToken());
+
+
+        return authenticationResponse;
 
     }
 
@@ -115,49 +128,60 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> logOutUser(String username) {
+    public ResponseEntity<?> logOutUser(String refreshTokenString) {
         try {
-            Optional<User> user = userRepository.findByUsername(username);
-            if (user.isEmpty()) {
-                return ResponseEntity.badRequest().body("User not found! Access Token is invalid");
+            Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(refreshTokenString);
+            if (refreshToken.isEmpty()) {
+                return ResponseEntity.badRequest().body("LogOut failed.. Please login again!");
             }
-            if (user.get().getRefreshToken() == null) {
-                return ResponseEntity.badRequest().body("User is already log out!");
-            }
-            user.get().setRefreshToken(null);
-            userRepository.save(user.get());
-            SecurityContextHolder.clearContext();
+            refreshTokenRepository.deleteById(refreshTokenString);
             return new ResponseEntity<>("LogOut Successful!", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Logout Failed", HttpStatus.CONFLICT);
+            return ResponseEntity.badRequest().body("LogOut failed!");
         }
     }
 
     @Override
-    public ResponseEntity<?> refreshUser(RefreshRequest refreshRequest) {
-        RefreshResponse refreshResponse = new RefreshResponse();
+    public ResponseEntity<?> refreshUser(String oldRefreshTokenString) {
+
         try {
-            String refreshToken = refreshRequest.getRefreshToken();
-            String username = jwtUtil.extractUsername(refreshToken);
-            CustomUserDetails customUserDetails = userDetailService.loadUserByUsername(username);
-            if (jwtUtil.validateRefreshToken(refreshToken, customUserDetails)) {
-                Optional<User> user = userRepository.findByUsername(username);
-                if (user.isPresent()) {
-                    if (user.get().getRefreshToken() == null) {
-                        return ResponseEntity.badRequest().body("Please login again!");
-                    }
-                    String newRefreshToken = jwtUtil.generateRefreshToken(customUserDetails);
-                    String newAccessToken = jwtUtil.generateAccessToken(customUserDetails);
-                    refreshResponse.setRefreshToken(newRefreshToken);
-                    user.get().setRefreshToken(newRefreshToken);
-                    userRepository.save(user.get());
-                    refreshResponse.setRefreshToken(newRefreshToken);
-                    refreshResponse.setAccessToken(newAccessToken);
-                }
+            Optional<RefreshToken> oldRefreshToken = refreshTokenRepository.findById(oldRefreshTokenString);
+            if (oldRefreshToken.isEmpty()) {
+                return ResponseEntity.badRequest().body("Invalid Refresh Token!");
             }
+            if (oldRefreshToken.get().getExpiration().getTime() < System.currentTimeMillis()) {
+                refreshTokenRepository.delete(oldRefreshToken.get());
+                throw new RuntimeException("Refresh Token has expired. Please log in again!");
+            }
+
+            Optional<User> user = userRepository.findByEmail(oldRefreshToken.get().getUserEmail());
+
+            if (user.isEmpty()) {
+                throw new RuntimeException("Invalid refresh token!");
+            }
+
+            CustomUserDetails customUserDetails = userDetailService.convert(user.get());
+            String accessToken = jwtUtil.generateAccessToken(customUserDetails);
+            String refreshTokenString = jwtUtil.generateRefreshToken(customUserDetails);
+
+            refreshTokenRepository.delete(oldRefreshToken.get());
+
+            RefreshToken refreshToken = new RefreshToken();
+            refreshToken.setToken(refreshTokenString);
+            refreshToken.setExpiration(jwtUtil.getExpirationDate(refreshTokenString));
+            refreshToken.setUserEmail(oldRefreshToken.get().getUserEmail());
+
+            refreshTokenRepository.save(refreshToken);
+
+            authenticationResponse.setRefreshToken(refreshToken.getToken());
+            authenticationResponse.setAccessToken(accessToken);
+
+
+            return new ResponseEntity<>(authenticationResponse, HttpStatus.OK);
+
         } catch (Exception e) {
             throw new RuntimeException("Token refresh failed!");
         }
-        return new ResponseEntity<>(refreshResponse, HttpStatus.OK);
+
     }
 }

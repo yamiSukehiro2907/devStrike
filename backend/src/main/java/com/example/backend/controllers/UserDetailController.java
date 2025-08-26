@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 
+import com.example.backend.dtos.Authentication.LogOutRequest;
 import com.example.backend.dtos.Authentication.LoginRequest;
 import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
@@ -48,12 +49,12 @@ public class UserDetailController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser() {
+    public ResponseEntity<?> logoutUser(@RequestBody LogOutRequest logOutRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username;
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
             username = customUserDetails.getUsername();
-            return authService.logOutUser(username);
+            return authService.logOutUser(logOutRequest.getRefreshToken());
         }
         return ResponseEntity.badRequest().body("Failed to logout the user!");
     }
@@ -63,6 +64,6 @@ public class UserDetailController {
         if (refreshRequest == null || refreshRequest.getRefreshToken() == null) {
             return new ResponseEntity<>("All credentials required", HttpStatus.BAD_REQUEST);
         }
-        return authService.refreshUser(refreshRequest);
+        return authService.refreshUser(refreshRequest.getRefreshToken());
     }
 }

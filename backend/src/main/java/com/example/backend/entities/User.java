@@ -37,10 +37,6 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
-
     @PrePersist
     private void onCreate() {
         createdAt = LocalDateTime.now();

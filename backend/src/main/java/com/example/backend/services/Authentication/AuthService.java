@@ -14,5 +14,5 @@ public interface AuthService {
 
     ResponseEntity<?> logOutUser(String authHeader);
 
-    ResponseEntity<?> refreshUser(RefreshRequest refreshRequest);
+    ResponseEntity<?> refreshUser(String refreshTokenString);
 }
