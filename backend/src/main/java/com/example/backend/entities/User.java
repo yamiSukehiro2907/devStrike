@@ -37,6 +37,9 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "profile_path_url")
+    private String profilePathUrl;
+
     @PrePersist
     private void onCreate() {
         createdAt = LocalDateTime.now();

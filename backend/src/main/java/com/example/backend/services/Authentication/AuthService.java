@@ -1,6 +1,5 @@
 package com.example.backend.services.Authentication;
 
-import com.example.backend.dtos.Authentication.RefreshRequest;
 import com.example.backend.dtos.Authentication.SignUpRequest;
 import com.example.backend.dtos.Response.AuthenticationResponse;
 import com.example.backend.dtos.User.UserDto;
@@ -15,4 +14,5 @@ public interface AuthService {
     ResponseEntity<?> logOutUser(String authHeader);
 
     ResponseEntity<?> refreshUser(String refreshTokenString);
+
 }
