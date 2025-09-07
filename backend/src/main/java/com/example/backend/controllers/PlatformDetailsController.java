@@ -24,7 +24,6 @@ public class PlatformDetailsController {
     @GetMapping("/my-platforms")
     public ResponseEntity<?> getPlatforms() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(authentication);
         Long userId;
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
             userId = customUserDetails.getUserId();
